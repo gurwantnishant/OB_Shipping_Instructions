@@ -5,6 +5,9 @@ import {sampleRepository as repo} from './services/requirementsRepository';
 import {downloadCsv} from './services/exportService';
 import {emptyFilters,filterReqs,sortReqs,detectConflicts,effectiveStatus,Filters,SortKey} from './utils/search';
 import {fmtDate} from './utils/dateFormatting';
+const logos=import.meta.glob('./assets/logo.*',{eager:true,query:'?url',import:'default'}) as Record<string,string>;
+const logoUrl=Object.values(logos)[0];
+const Logo=()=>logoUrl?<span className="logo img"><img src={logoUrl} alt="Company logo"/></span>:<span className="logo">LOGO</span>;
 const DEMO='DEMO DATA — NOT VALIDATED FOR ACTUAL SHIPMENTS';
 const useHash=()=>{const [h,s]=useState(location.hash||'#/');useEffect(()=>{const f=()=>s(location.hash||'#/');addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);return h;};
 const Badge=({s}:{s:string})=><span className={'b '+(s==='Conflict Detected'?'warn':s==='Validated'?'':'amb')}>{s}</span>;
@@ -57,6 +60,6 @@ export default function App(){
  const h=useHash();const [all,setAll]=useState<R[]>([]);const [imgs,setImgs]=useState<Img[]>([]);const [err,setErr]=useState('');const [load,setLoad]=useState(true);
  useEffect(()=>{Promise.all([repo.list(),repo.images()]).then(([a,b])=>{setAll(a);setImgs(b)}).catch(e=>setErr(String(e))).finally(()=>setLoad(false))},[]);
  const conf=useMemo(()=>detectConflicts(all),[all]);const id=h.startsWith('#/req/')?h.slice(6):'';const r=all.find(x=>x.id===id);
- return <><nav><span className="logo">LOGO</span><b>Customer Outbound Shipping Requirements Lookup</b><a href="#/">Search</a><a href="#/about">About / Data Scope</a><small>Mock user: demo.user (no real authentication)</small></nav>
+ return <><nav><Logo/><b>Customer Outbound Shipping Requirements Lookup</b><a href="#/">Search</a><a href="#/about">About / Data Scope</a><small>Mock user: demo.user (no real authentication)</small></nav>
  <div className="demo noprint">{DEMO}</div><main>
  {err?<div className="alert">Failed to load requirements: {err}</div>:load?<p>Loading requirements…</p>:h==='#/about'?<About/>:id?(r?<Detail r={r} imgs={imgs.filter(i=>i.requirementIds.includes(r.id))} conf={conf} all={all}/>:<div className="card">Requirement not found. <a href="#/">Back</a></div>):<Home all={all} conf={conf} imgs={imgs}/>}</main></>;}

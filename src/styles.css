@@ -12,3 +12,4 @@ label{font-size:12px;font-weight:600;color:#44546f}button{background:#0057b8;col
 .lb{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:9;padding:16px}.lb>div{background:#fff;border-radius:8px;max-width:760px;width:100%;padding:12px}.lb img{width:100%}
 .alert{background:#fde8e8;border:1px solid #f5b5b5;color:#7f1d1d;padding:10px;border-radius:6px;margin-bottom:12px}
 @media(max-width:700px){dl{grid-template-columns:1fr}}@media print{nav,.demo.noprint,.noprint{display:none}body{background:#fff}.card{box-shadow:none;break-inside:avoid}}
+.logo.img{background:#fff;padding:4px 10px}.logo.img img{height:26px;display:block}
