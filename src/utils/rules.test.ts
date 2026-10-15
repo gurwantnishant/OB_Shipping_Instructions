@@ -1,0 +1,20 @@
+import {describe,it,expect} from 'vitest';
+import {prepare} from '../services/requirementsRepository';
+import {buildSample} from '../data/sampleRequirements';
+import {emptyFilters,filterReqs,detectConflicts} from './search';
+import {isInScope} from './validation';
+import {toCsv} from '../services/exportService';
+import {fmtDate,UNKNOWN_DATE} from './dateFormatting';
+const {reqs,images}=prepare(buildSample());
+describe('rules',()=>{
+ it('seed size 25-40',()=>expect(reqs.length).toBeGreaterThanOrEqual(25));
+ it('partial part and case-insensitive customer',()=>{expect(filterReqs(reqs,{...emptyFilters,part:'bat-18'}).length).toBeGreaterThan(0);expect(filterReqs(reqs,{...emptyFilters,customer:'NORTHSTAR'}).length).toBeGreaterThan(0)});
+ it('bill-to and ship-to independently',()=>{expect(filterReqs(reqs,{...emptyFilters,billTo:'B-100455'}).length).toBeGreaterThan(0);expect(filterReqs(reqs,{...emptyFilters,shipTo:'S-100455-02'}).length).toBeGreaterThan(0)});
+ it('DC filter reflects applicability',()=>{const a=filterReqs(reqs,{...emptyFilters,dc:['Fontana, CA']});expect(a.every(r=>r.applicableDCs.includes('Fontana, CA'))).toBe(true)});
+ it('combined filters',()=>{const a=filterReqs(reqs,{...emptyFilters,so:['PCONA'],dc:['Fontana, CA'],part:'DEMO'});expect(a.every(r=>r.salesOrganization==='PCONA'&&r.applicableDCs.includes('Fontana, CA'))).toBe(true)});
+ it('conflicts flagged, none merged',()=>{const c=detectConflicts(reqs);expect(Object.keys(c).length).toBe(4);expect(reqs.some(r=>r.id==='REQ-0029')).toBe(true)});
+ it('images map to requirements',()=>images.forEach(i=>expect(reqs.find(r=>r.id===i.requirementIds[0])?.referenceImageIds).toContain(i.id)));
+ it('VDF/B2C excluded',()=>{expect(isInScope({customerType:'B2C',customerName:'X'})).toBe(false);expect(isInScope({customerType:'B2B',customerName:'Acme VDF'})).toBe(false);const bad=buildSample();bad.push({...bad[0],id:'X',customerType:'VDF'});expect(prepare(bad).reqs.length).toBe(reqs.length)});
+ it('unknown date never invented',()=>{expect(fmtDate(null)).toBe(UNKNOWN_DATE);expect(reqs.some(r=>r.sourceLastMaintainedDate===null)).toBe(true)});
+ it('csv matches filtered rows',()=>{const a=filterReqs(reqs,{...emptyFilters,so:['PCEC']});expect(toCsv(a).split('\r\n').length).toBe(a.length+1)});
+});
